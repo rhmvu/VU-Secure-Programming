@@ -1,3 +1,7 @@
+#ide
+*.iml
+.idea/
+
 #venv crap
 bin/
 lib64
