@@ -3,6 +3,7 @@
 .idea/
 
 #venv crap
+include/
 bin/
 lib64
 pyvenv.cfg

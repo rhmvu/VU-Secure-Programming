@@ -9,7 +9,7 @@ mode:
 \t -d: decrypts ciphertext by the specified key
 \t -h: displays this help message   """
 
-FAILURE_MESSAGE = "Error occured: {}\n\nFor more information run 'python playfair.py -h'"
+FAILURE_MESSAGE = "Error occured: {}\n\nFor help information run 'python playfair.py -h'"
 
 def parse_args():
     #Check for parameters
@@ -30,7 +30,7 @@ def parse_args():
 
 
 def print_fail(exception):
-    fail_message = "Unknown"
+    fail_message = "Unknown error"
     if(exception):
         fail_message = str(exception)
     return str.format(FAILURE_MESSAGE,fail_message)
@@ -49,7 +49,11 @@ def main():
     if func == return_help:
         result = func()
     else:
-        result = func(sys.argv[2],sys.argv[3])
+        try:
+            result = func(sys.argv[2],sys.argv[3])
+        except Exception as e:
+            print(print_fail(e))
+            exit(1)
 
     print(result)
 
