@@ -1,3 +1,7 @@
+*.odt
+*.pdf
+*.txt
+
 #ide
 *.iml
 .idea/

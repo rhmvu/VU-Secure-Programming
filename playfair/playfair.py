@@ -1,10 +1,16 @@
 #!/usr/bin/env python
+
+# Name: Ruben van der Ham
+# VU net id: rhm270
+# Student number: 2592271
+# Email: 2592271@student.vu.nl
+
 from __future__ import print_function
 from collections import OrderedDict
 import re
 import sys
 
-HELP_MESSAGE = """Playfair implementation by Ruben van der Ham, 2592271, 2592271@student.vu.nl\n
+HELP_MESSAGE = """Playfair implementation by Ruben van der Ham\n
 Usage: playfair.py [mode] key [plaintext/ciphertext]
 mode:
 \t -e: encrypts plaintext by the specified key
@@ -164,9 +170,11 @@ def find_index(grid, char):
 
 
 def generate_playfair_key(basekey):
+
+    # replace al 'i's by 'j's (although assumed they are not present)
     basekey = basekey.replace("i", "j")
 
-    # remove all double occurrences if present to correct mistakes (assumed they are not present)
+    # remove all double occurrences if present to correct mistakes (although assumed they are not present)
     basekey = "".join(OrderedDict.fromkeys(basekey))
 
     global alphabet
