@@ -11,7 +11,7 @@ import re
 import sys
 
 HELP_MESSAGE = """Playfair implementation by Ruben van der Ham\n
-Usage: playfair.py [mode] key [plaintext/ciphertext]
+Usage: playfair.py <mode> key <plaintext/ciphertext>
 mode:
 \t -e: encrypts plaintext by the specified key
 \t -d: decrypts ciphertext by the specified key
