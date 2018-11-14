@@ -12,7 +12,7 @@ from Crypto.Cipher import  PKCS1_v1_5 as Cipher_PKCS1_v1_5
 from Crypto.Cipher import AES
 from Crypto.Signature import PKCS1_v1_5 as SignatureCipher
 from base64 import b64decode,b64encode
-import sys
+import sys , os, struct
 
 
 HELP_MESSAGE = """Vault implementation by Ruben van der Ham\n
@@ -103,24 +103,70 @@ def verify_signature(file_path,pubkey_path, sig_path):
         exit(1)
 
 def encrypt_file(file_path, password,iv):
-    file_content = read_contents(file_path)
 
-    # TODO: Fix password and iv bytes crap
 
-    str_password = str(password)
+    # get iv and pad to 16 bytes if necessary
+    bytes_iv = bytearray.fromhex(iv).zfill(16)
+    # convert password to 32 bytes, 256 bit key
+    bytes_password = bytearray.fromhex(password).zfill(32)
+    file_size = os.path.getsize(file_path)
 
-    aes = AES.new(str_password,AES.MODE_CBC,iv)
-    print(aes.encrypt(file_content),end="")
+    aes = AES.new(bytes(bytes_password), AES.MODE_CBC, bytes(bytes_iv))
+
+    with open(file_path, "r") as file:
+        while file_size >= 16:
+            block = file.read(16)
+            file_size -= 16
+            print(aes.encrypt(block), end="")
+
+        # apply padding to last block if needed
+        if 0 < file_size < 16:
+            block = bytearray(file.read(file_size))
+            for i in range(0, (16 - file_size)):
+                block.append(int(16 - file_size))
+            print(aes.encrypt(bytes(block)), end="")
 
 
 def decrypt_file(file_path, password,iv):
-    file_content = read_contents(file_path)
-    # TODO: Fix password and iv bytes crap
+    # get iv and pad to 16 bytes if necessary
+    bytes_iv = bytearray.fromhex(iv).zfill(16)
+    # convert password to 32 bytes, 256 bit key
+    bytes_password = bytearray.fromhex(password).zfill(32)
 
-    str_iv = str(iv)
-    str_password = str(password)
-    aes = AES.new(str_password,AES.MODE_CBC,iv)
-    print(aes.decrypt(file_content),end="")
+    file_size = os.path.getsize(file_path)
+    if file_size == 0:
+        raise Exception("File empty")
+        exit(1)
+
+    aes = AES.new(bytes(bytes_password), AES.MODE_CBC, bytes(bytes_iv))
+
+    with open(file_path, "r") as file:
+        while file_size > 16:
+            block = file.read(16)
+            file_size -= 16
+            print(aes.decrypt(block),end="")
+
+        # read last block and check for padding:
+        block = file.read(file_size)
+        decrypted_block = aes.decrypt(block)
+        try:
+            # try to grab last char/byte as decimal
+            last_byte = ord(bytes(decrypted_block[file_size-1]))
+            # Compare all padding bytes to their expected value
+            if 0 < last_byte < file_size:
+                start_padding_bytes = file_size-last_byte
+                for i in range(start_padding_bytes, file_size):
+                    if ord(decrypted_block[i]) != last_byte:
+                        print(decrypted_block,end="")
+                        return
+        except ValueError as e:
+            print(e)
+            # not parsable as decimal, thus no padding
+            print(decrypted_block,end="")
+            return
+
+        print(decrypted_block[:start_padding_bytes],end="")
+
 
 def main():
     try:
@@ -130,16 +176,16 @@ def main():
         exit(1)
 
     # run the function/mode
-    #try:
-    if func == print_help:
-        func()
-    elif func == sign_file:
-        func(sys.argv[2], sys.argv[3])
-    else:
-        func(sys.argv[2], sys.argv[3], sys.argv[4])
-    #except Exception as e:
-    #    print(print_fail(e))
-    #    exit(1)
+    try:
+        if func == print_help:
+            func()
+        elif func == sign_file:
+            func(sys.argv[2], sys.argv[3])
+        else:
+            func(sys.argv[2], sys.argv[3], sys.argv[4])
+    except Exception as e:
+       print(print_fail(e))
+       exit(1)
 
 
 if __name__ == '__main__':
