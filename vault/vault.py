@@ -68,18 +68,16 @@ def read_contents(filepath):
     with open(filepath, "r") as f:
         return f.read()
 
-def sha256_file2(file_path):
-    sha = SHA256.new()
-    bytesread = None
-    with open(file_path, "r") as f:
-        pass
-
 
 def sha256_file(file_path):
-    bin_file = read_contents(file_path)
     sha = SHA256.new()
-    sha.update(bin_file)
-    return sha
+    with open(file_path, "r") as file:
+        while True:
+            data = file.read(1024)
+            sha.update(data)
+            if len(data) < 1024:
+                return sha
+
 
 def sign_file(file_path, privkey_path):
     str_privkey = read_contents(privkey_path)
@@ -105,6 +103,7 @@ def verify_signature(file_path,pubkey_path, sig_path):
         exit(0)
     else:
         exit(1)
+
 
 def encrypt_file(file_path, password,iv):
     # get iv and pad to 16 bytes if necessary
@@ -146,7 +145,7 @@ def decrypt_file(file_path, password,iv):
         while file_size > 16:
             block = file.read(16)
             file_size -= 16
-            print(aes.decrypt(block),end="")
+            print(aes.decrypt(block), end="")
 
         # read last block and check for padding:
         block = file.read(file_size)
@@ -159,15 +158,15 @@ def decrypt_file(file_path, password,iv):
                 start_padding_bytes = file_size-last_byte
                 for i in range(start_padding_bytes, file_size):
                     if ord(decrypted_block[i]) != last_byte:
-                        print(decrypted_block,end="")
+                        print(decrypted_block, end="")
                         return
         except ValueError as e:
             print(e)
             # not parsable as decimal, thus no padding
-            print(decrypted_block,end="")
+            print(decrypted_block, end="")
             return
 
-        print(decrypted_block[:start_padding_bytes],end="")
+        print(decrypted_block[:start_padding_bytes], end="")
 
 
 def main():
