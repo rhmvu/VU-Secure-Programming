@@ -2,6 +2,9 @@
 *.odt
 *.pdf
 *.txt
+*.pem
+samples
+*test_vault.py
 
 *testfile*
 *.key

@@ -8,11 +8,10 @@
 from __future__ import print_function
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
-from Crypto.Cipher import  PKCS1_v1_5 as Cipher_PKCS1_v1_5
 from Crypto.Cipher import AES
 from Crypto.Signature import PKCS1_v1_5 as SignatureCipher
 from base64 import b64decode,b64encode
-import sys , os, struct
+import sys, os, struct
 
 
 HELP_MESSAGE = """Vault implementation by Ruben van der Ham\n
@@ -29,7 +28,7 @@ mode:
 
 FAILURE_MESSAGE = "Error occurred: {}\n\nFor help information run 'python vault.py -h'"
 
-AES_BLOCKSIZE = 32 #32 bytes == 128 bits
+AES_BLOCKSIZE = 32 #32 bytes == 256 bits
 
 
 def parse_args():
@@ -69,13 +68,18 @@ def read_contents(filepath):
     with open(filepath, "r") as f:
         return f.read()
 
+def sha256_file2(file_path):
+    sha = SHA256.new()
+    bytesread = None
+    with open(file_path, "r") as f:
+        pass
+
 
 def sha256_file(file_path):
     bin_file = read_contents(file_path)
     sha = SHA256.new()
     sha.update(bin_file)
     return sha
-
 
 def sign_file(file_path, privkey_path):
     str_privkey = read_contents(privkey_path)
@@ -85,7 +89,7 @@ def sign_file(file_path, privkey_path):
     cipher = SignatureCipher.new(key_priv)
     cipher_text = cipher.sign(sha)
 
-    print(b64encode(str(cipher_text)))
+    print(b64encode(str(cipher_text)), end="")
 
 
 def verify_signature(file_path,pubkey_path, sig_path):
@@ -103,12 +107,10 @@ def verify_signature(file_path,pubkey_path, sig_path):
         exit(1)
 
 def encrypt_file(file_path, password,iv):
-
-
     # get iv and pad to 16 bytes if necessary
     bytes_iv = bytearray.fromhex(iv).zfill(16)
     # convert password to 32 bytes, 256 bit key
-    bytes_password = bytearray.fromhex(password).zfill(32)
+    bytes_password = bytearray.fromhex(password).zfill(AES_BLOCKSIZE)
     file_size = os.path.getsize(file_path)
 
     aes = AES.new(bytes(bytes_password), AES.MODE_CBC, bytes(bytes_iv))
@@ -131,7 +133,7 @@ def decrypt_file(file_path, password,iv):
     # get iv and pad to 16 bytes if necessary
     bytes_iv = bytearray.fromhex(iv).zfill(16)
     # convert password to 32 bytes, 256 bit key
-    bytes_password = bytearray.fromhex(password).zfill(32)
+    bytes_password = bytearray.fromhex(password).zfill(AES_BLOCKSIZE)
 
     file_size = os.path.getsize(file_path)
     if file_size == 0:
